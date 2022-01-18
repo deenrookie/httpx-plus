@@ -1,12 +1,10 @@
-# Binaries for programs and plugins
-*.exe
-*.exe~
-*.dll
-*.so
-*.dylib
 
-# Test binary, build with `go test -c`
-*.test
+cmd/httpx/httpx
+integration_tests/httpx
+integration_tests/integration-test
+cmd/functional-test/httpx_dev
+cmd/functional-test/functional-test
+cmd/functional-test/httpx
+cmd/functional-test/*.cfg
+.idea/*
 
-# Output of the go coverage tool, specifically when used with LiteIDE
-*.out
