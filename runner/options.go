@@ -2,21 +2,20 @@ package runner
 
 import (
 	"math"
-	"os"
 	"regexp"
 	"strings"
 
+	"github.com/deenrookie/httpx-plus/common/customheader"
+	"github.com/deenrookie/httpx-plus/common/customlist"
+	customport "github.com/deenrookie/httpx-plus/common/customports"
+	fileutilz "github.com/deenrookie/httpx-plus/common/fileutil"
+	"github.com/deenrookie/httpx-plus/common/stringz"
 	"github.com/projectdiscovery/fileutil"
 	"github.com/projectdiscovery/goconfig"
 	"github.com/projectdiscovery/goflags"
 	"github.com/projectdiscovery/gologger"
 	"github.com/projectdiscovery/gologger/formatter"
 	"github.com/projectdiscovery/gologger/levels"
-	"github.com/deenrookie/httpx-plus/common/customheader"
-	"github.com/deenrookie/httpx-plus/common/customlist"
-	customport "github.com/deenrookie/httpx-plus/common/customports"
-	fileutilz "github.com/deenrookie/httpx-plus/common/fileutil"
-	"github.com/deenrookie/httpx-plus/common/stringz"
 )
 
 const (
@@ -350,21 +349,21 @@ func ParseOptions() *Options {
 
 	_ = flagSet.Parse()
 	// Read the inputs and configure the logging
-	options.configureOutput()
-
-	err := options.configureResume()
-	if err != nil {
-		gologger.Fatal().Msgf("%s\n", err)
-	}
-
-	showBanner()
-
-	if options.Version {
-		gologger.Info().Msgf("Current Version: %s\n", Version)
-		os.Exit(0)
-	}
-
-	options.validateOptions()
+	//options.configureOutput()
+	//
+	//err := options.configureResume()
+	//if err != nil {
+	//	gologger.Fatal().Msgf("%s\n", err)
+	//}
+	//
+	//showBanner()
+	//
+	//if options.Version {
+	//	gologger.Info().Msgf("Current Version: %s\n", Version)
+	//	os.Exit(0)
+	//}
+	//
+	//options.validateOptions()
 
 	return options
 }

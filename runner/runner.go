@@ -34,18 +34,18 @@ import (
 	"github.com/projectdiscovery/stringsutil"
 	"github.com/projectdiscovery/urlutil"
 
-	// automatic fd max increase if running as root
-	_ "github.com/projectdiscovery/fdmax/autofdmax"
-	"github.com/projectdiscovery/fileutil"
-	"github.com/projectdiscovery/gologger"
-	"github.com/projectdiscovery/hmap/store/hybrid"
-	pdhttputil "github.com/projectdiscovery/httputil"
 	customport "github.com/deenrookie/httpx-plus/common/customports"
 	fileutilz "github.com/deenrookie/httpx-plus/common/fileutil"
 	"github.com/deenrookie/httpx-plus/common/httputilz"
 	"github.com/deenrookie/httpx-plus/common/httpx"
 	"github.com/deenrookie/httpx-plus/common/slice"
 	"github.com/deenrookie/httpx-plus/common/stringz"
+	// automatic fd max increase if running as root
+	_ "github.com/projectdiscovery/fdmax/autofdmax"
+	"github.com/projectdiscovery/fileutil"
+	"github.com/projectdiscovery/gologger"
+	"github.com/projectdiscovery/hmap/store/hybrid"
+	pdhttputil "github.com/projectdiscovery/httputil"
 	"github.com/projectdiscovery/iputil"
 	"github.com/projectdiscovery/mapcidr"
 	"github.com/projectdiscovery/rawhttp"
@@ -305,13 +305,13 @@ func (r *Runner) prepareInput() {
 			numHosts += numTargetsFile
 		}
 	}
-	if fileutil.HasStdin() {
-		numTargetsStdin, err := r.loadAndCloseFile(os.Stdin)
-		if err != nil {
-			gologger.Fatal().Msgf("Could not read input from stdin: %s\n", err)
-		}
-		numHosts += numTargetsStdin
-	}
+	//if fileutil.HasStdin() {
+	//	numTargetsStdin, err := r.loadAndCloseFile(os.Stdin)
+	//	if err != nil {
+	//		gologger.Fatal().Msgf("Could not read input from stdin: %s\n", err)
+	//	}
+	//	numHosts += numTargetsStdin
+	//}
 
 	if r.options.ShowStatistics {
 		r.stats.AddStatic("totalHosts", numHosts)
@@ -394,6 +394,12 @@ func (r *Runner) streamInput() (chan string, error) {
 		}
 	}()
 	return out, nil
+}
+
+
+func (r *Runner) SetTarget(target string) {
+	_, _ = r.hm.Get(target)
+	_ = r.hm.Set(target, nil)
 }
 
 func (r *Runner) loadAndCloseFile(finput *os.File) (numTargets int, err error) {
@@ -492,14 +498,7 @@ func (r *Runner) Close() {
 	}
 }
 
-// RunEnumeration on targets for httpx client
-func (r *Runner) RunEnumeration() {
-	// Try to create output folder if it doesn't exist
-	if r.options.StoreResponse && !fileutil.FolderExists(r.options.StoreResponseDir) {
-		if err := os.MkdirAll(r.options.StoreResponseDir, os.ModePerm); err != nil {
-			gologger.Fatal().Msgf("Could not create output directory '%s': %s\n", r.options.StoreResponseDir, err)
-		}
-	}
+func (r *Runner) RunEnumeration(target string) (rets []Result) {
 
 	r.prepareInputPaths()
 
@@ -511,8 +510,8 @@ func (r *Runner) RunEnumeration() {
 			gologger.Fatal().Msgf("Could not stream input: %s\n", err)
 		}
 	} else {
-		r.prepareInput()
-
+		// r.prepareInput()
+		r.SetTarget(target)
 		// if resume is enabled inform the user
 		if r.options.ShouldLoadResume() && r.options.resumeCfg.Index > 0 {
 			gologger.Debug().Msgf("Resuming at position %d: %s\n", r.options.resumeCfg.Index, r.options.resumeCfg.ResumeFrom)
@@ -525,24 +524,6 @@ func (r *Runner) RunEnumeration() {
 	output := make(chan Result)
 	go func(output chan Result) {
 		defer wgoutput.Done()
-
-		var f *os.File
-		if r.options.Output != "" {
-			var err error
-			f, err = os.Create(r.options.Output)
-			if err != nil {
-				gologger.Fatal().Msgf("Could not create output file '%s': %s\n", r.options.Output, err)
-			}
-			defer f.Close() //nolint
-		}
-		if r.options.CSVOutput {
-			header := Result{}.CSVHeader()
-			gologger.Silent().Msgf("%s\n", header)
-			if f != nil {
-				//nolint:errcheck // this method needs a small refactor to reduce complexity
-				f.WriteString(header + "\n")
-			}
-		}
 
 		for resp := range output {
 			if resp.err != nil {
@@ -596,18 +577,10 @@ func (r *Runner) RunEnumeration() {
 				continue
 			}
 
-			row := resp.str
-			if r.options.JSONOutput {
-				row = resp.JSON(&r.scanopts)
-			} else if r.options.CSVOutput {
-				row = resp.CSVRow(&r.scanopts)
-			}
+			// row := resp.str
 
-			gologger.Silent().Msgf("%s\n", row)
-			if f != nil {
-				//nolint:errcheck // this method needs a small refactor to reduce complexity
-				f.WriteString(row + "\n")
-			}
+			rets = append(rets, resp)
+			// gologger.Silent().Msgf("%s\n", row)
 		}
 	}(output)
 
@@ -658,6 +631,7 @@ func (r *Runner) RunEnumeration() {
 	close(output)
 
 	wgoutput.Wait()
+	return
 }
 
 func (r *Runner) process(t string, wg *sizedwaitgroup.SizedWaitGroup, hp *httpx.HTTPX, protocol string, scanopts *scanOptions, output chan Result) {

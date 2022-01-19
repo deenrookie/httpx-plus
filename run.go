@@ -1,16 +1,23 @@
 package main
 
 import (
+	"fmt"
+	"github.com/deenrookie/httpx-plus/runner"
+	"github.com/projectdiscovery/gologger"
 	"os"
 	"os/signal"
-
-	"github.com/projectdiscovery/gologger"
-	"github.com/deenrookie/httpx-plus/runner"
 )
 
-func main() {
+func HttpDetectStart(target string) (rets []runner.Result) {
 	// Parse the command line flags and read config files
 	options := runner.ParseOptions()
+
+	options.StatusCode = true
+	options.ExtractTitle = true
+	options.TechDetect = true
+	options.OutputServerHeader = true
+	options.Threads = 5
+	options.OutputCName = true
 
 	httpxRunner, err := runner.New(options)
 	if err != nil {
@@ -35,6 +42,11 @@ func main() {
 		}
 	}()
 
-	httpxRunner.RunEnumeration()
+	rets = httpxRunner.RunEnumeration(target)
 	httpxRunner.Close()
+	return
+}
+
+func main() {
+	fmt.Println(HttpDetectStart("d33n.cn"))
 }
