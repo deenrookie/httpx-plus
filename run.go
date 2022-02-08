@@ -1,7 +1,6 @@
-package main
+package httpx_plus
 
 import (
-	"fmt"
 	"github.com/deenrookie/httpx-plus/runner"
 	"github.com/projectdiscovery/gologger"
 	"os"
@@ -46,7 +45,7 @@ func HttpDetectStart(target string) (rets []runner.Result) {
 	httpxRunner.Close()
 	return
 }
-
-func main() {
-	fmt.Println(HttpDetectStart("d33n.cn"))
-}
+//
+//func main() {
+//	fmt.Println(HttpDetectStart("d33n.cn"))
+//}
