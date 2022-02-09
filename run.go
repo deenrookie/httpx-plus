@@ -3,6 +3,7 @@ package httpx_plus
 import (
 	"github.com/deenrookie/httpx-plus/runner"
 	"github.com/projectdiscovery/gologger"
+	"math"
 	"os"
 	"os/signal"
 )
@@ -10,6 +11,14 @@ import (
 func HttpDetectStart(target string) (rets []runner.Result) {
 	// Parse the command line flags and read config files
 	options := runner.ParseOptions()
+
+
+	options.Timeout = 5
+	options.MaxRedirects = 10
+	options.RateLimit = 150
+	options.HostMaxErrors = 30
+	options.MaxResponseBodySizeToRead = math.MaxInt32
+	options.MaxResponseBodySizeToSave = math.MaxInt32
 
 	options.StatusCode = true
 	options.ExtractTitle = true
@@ -45,7 +54,7 @@ func HttpDetectStart(target string) (rets []runner.Result) {
 	httpxRunner.Close()
 	return
 }
-//
+
 //func main() {
-//	fmt.Println(HttpDetectStart("d33n.cn"))
+//	fmt.Println(HttpDetectStart("p.d33n.cn:8443"))
 //}
